@@ -1,15 +1,15 @@
 
 import streamlit as st
-import numpy as np
 import pandas as pd
 import joblib
 
-# ===== Title =====
+st.set_page_config(page_title="Football Header Impact Classifier", layout="centered")
+
 st.title("⚽ Football Header Impact Classifier")
 
 st.write("""
-This tool predicts whether a football header impact is **High** or **Low**
-based on 5 biomechanical features extracted from match footage.
+This tool predicts whether a football header impact is **High** or **Low**  
+based on 5 binary questions derived from video analysis.
 """)
 
 # === Target variable selection ===
@@ -18,66 +18,59 @@ target_choice = st.radio("Choose target label:", ["PLA", "PAA"], horizontal=True
 # === Model selection ===
 model_choice = st.selectbox("Choose your model:", ["RandomForest", "SVM", "LogisticRegression", "XGBoost"])
 
-# === Load selected model, scaler and threshold ===
+# === Load model and threshold ===
 model_filename = f"{model_choice.lower()}_{target_choice}.pkl"
-scaler_filename = f"scaler_{target_choice}.pkl"
 threshold_filename = f"threshold_{model_choice.lower()}_{target_choice}.pkl"
 
 try:
     model = joblib.load(model_filename)
-    scaler = joblib.load(scaler_filename)
     threshold = joblib.load(threshold_filename)
 except FileNotFoundError:
-    st.error(f"Missing model or scaler file: {model_filename}, {scaler_filename}, or {threshold_filename}")
+    st.error("Missing model or threshold file. Please train and export them first.")
     st.stop()
 
-# === Optional: Adjust threshold manually ===
-threshold = st.slider("Prediction threshold", 0.1, 0.9, float(threshold), step=0.01)
+# === Optional threshold adjustment ===
+threshold = st.slider("Prediction threshold (probability > threshold → High)", 0.1, 0.9, float(threshold), step=0.01)
 
 st.markdown("---")
 
-# === Input features ===
-st.subheader("📥 Enter Impact Features")
+st.subheader("📋 Impact Questions (Yes / No)")
 
-dist_bef = st.slider("1️⃣ Distance before impact (meters)", 0.0, 10.0, 2.0, step=0.1)
-flight_bef = st.slider("2️⃣ Ball flight time before header (seconds)", 0.0, 2.0, 0.5, step=0.05)
-flight_aft = st.slider("3️⃣ Ball flight time after header (seconds)", 0.0, 2.0, 0.5, step=0.05)
-dist_aft = st.slider("4️⃣ Distance after impact (meters)", 0.0, 10.0, 2.0, step=0.1)
-head_type = st.selectbox("5️⃣ Header type", ['Frontal', 'Lateral', 'Other'])
+def yes_no(question: str, key: str):
+    return st.radio(question, ["No", "Yes"], key=key) == "Yes"
 
-# Encode header type
-head_type_encoded = {'Frontal': 0, 'Lateral': 1, 'Other': 2}[head_type]
+q1 = yes_no("1️⃣ Does the ball travel more than 35 meters BEFORE the header?", "q1")
+q2 = yes_no("2️⃣ Is the ball velocity high BEFORE the header?", "q2")
+q3 = yes_no("3️⃣ Is there a change in direction AFTER the header?", "q3")
+q4 = yes_no("4️⃣ Does the ball travel more than 10 meters AFTER the header?", "q4")
+q5 = yes_no("5️⃣ Is the header flicked or glanced?", "q5")
 
-# === Build input DataFrame ===
 input_data = pd.DataFrame([{
-    "1_Dist_Bef_Head": dist_bef,
-    "2_Fli_Bef_Head": flight_bef,
-    "3_Fli_Aft_Head": flight_aft,
-    "4_Dist_Aft_Head": dist_aft,
-    "5_Head_Type": head_type_encoded
+    "Q1_BallOver35m_Before": int(q1),
+    "Q2_FastBall_Before": int(q2),
+    "Q3_DirectionChange_After": int(q3),
+    "Q4_BallOver10m_After": int(q4),
+    "Q5_Header_FlickedOrGlanced": int(q5)
 }])
 
-# === Feature scaling ===
-input_scaled = scaler.transform(input_data)
-
-# === Predict ===
-proba = model.predict_proba(input_scaled)[0][1]
-pred = "High" if proba > threshold else "Low"
+# === Prediction ===
+proba = model.predict_proba(input_data)[0][1]
+prediction = "High" if proba > threshold else "Low"
 
 # === Display result ===
 st.subheader("📊 Prediction Result")
 
-if pred == "High":
+if prediction == "High":
     st.success(f"🟥 High impact predicted (probability: {proba:.2f})")
 else:
     st.info(f"🟩 Low impact predicted (probability: {proba:.2f})")
 
-# === Feature info ===
-with st.expander("ℹ️ About the Features"):
+# === Explanation toggle ===
+with st.expander("ℹ️ Explanation of each question"):
     st.markdown("""
-    - **1_Dist_Bef_Head**: Distance covered before the header
-    - **2_Fli_Bef_Head**: Ball flight duration before the header
-    - **3_Fli_Aft_Head**: Ball flight duration after the header
-    - **4_Dist_Aft_Head**: Distance covered after the header
-    - **5_Head_Type**: Type of header (frontal, lateral, other)
+- **Q1**: Did the ball travel more than half the field (~35m) before being headed?
+- **Q2**: Was the ball moving fast before the header? (e.g., driven vs floated)
+- **Q3**: Did the direction of the ball clearly change after the header?
+- **Q4**: Did the ball travel more than 10 meters after the header?
+- **Q5**: Was it a flicked/glanced header (vs. a solid direction-changing one)?
     """)
