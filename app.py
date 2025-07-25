@@ -43,7 +43,7 @@ q1 = yes_no("1️⃣ Does the ball travel more than 35 meters BEFORE the header?
 q2 = yes_no("2️⃣ Is the ball velocity high BEFORE the header?", "q2")
 q3 = yes_no("3️⃣ Is there a change in direction AFTER the header?", "q3")
 q4 = yes_no("4️⃣ Does the ball travel more than 10 meters AFTER the header?", "q4")
-q5 = yes_no("5️⃣ Is the header flicked or glanced?", "q5")
+q5 = yes_no("5️⃣ Is the header a flick/glance? (Yes = flick/glance, No = solid header)", "q5")
 
 # === Prepare input ===
 expected_columns = [
@@ -76,11 +76,35 @@ else:
     st.info(f"🟩 Low impact predicted (probability: {proba:.2f})")
 
 # === Explanation toggle ===
-with st.expander("ℹ️ Explanation of each question"):
+with st.expander("ℹ️ Detailed Explanation of each question"):
     st.markdown("""
-- **Q1**: Did the ball travel more than half the field (~35m) before being headed?
-- **Q2**: Was the ball moving fast before the header? (e.g., driven vs floated)
-- **Q3**: Did the direction of the ball clearly change after the header?
-- **Q4**: Did the ball travel more than 10 meters after the header?
-- **Q5**: Was it a flicked/glanced header (vs. a solid direction-changing one)?
+    ## High/Low Force Classification - Impact Characteristics
+    
+    ### BEFORE HEADER:
+    
+    **Q1 - Distance Ball Travels BEFORE Header**
+    - **Question**: Does the ball travel MORE than 35 metres BEFORE it is headed?
+    - **Guide**: Use half the pitch as your guide (does the ball travel more than half the length of the pitch?)
+    - **Note**: The distance includes any bounces and/or deflections (e.g., if the ball travels ~20/25 metres in the air before bouncing a further ~10/15 metres without interference before being headed, it has travelled more than 35 metres)
+    
+    **Q2 - Flight Course of the Ball BEFORE Header**
+    - **Question**: Is the velocity (directed speed and acceleration) of the ball high AFTER it has been kicked/thrown?
+    - **Consider**: Factors that affect acceleration/speed after the ball has been kicked or headed before the header itself (e.g., does the ball bounce several times which may reduce speed/acceleration? Is there a deflection that changes the speed/acceleration?)
+    - **Note**: Consider the type of ball delivery - speed/acceleration following a lofted/floated pass is likely different than following a driven pass/cross
+    
+    ### AFTER HEADER:
+    
+    **Q3 - Flight Course of the Ball AFTER Header**
+    - **Question**: Is there a change in the motion/direction that the ball is travelling in AFTER it has been headed?
+    - **Consider**: Does the direction or motion change after the header? (e.g., ball travels back towards goalkeeper after a header from a goal kick vs. little-to-no change in direction for a flick/glance)
+    
+    **Q4 - Distance the Ball Travels AFTER Header**
+    - **Question**: Does the ball travel MORE than 10 metres AFTER it has been headed?
+    - **Guide**: Use the distance between the goal and penalty spot (12 yards = ~10 metres) as your guide
+    - **Note**: If the ball is blocked/hits an obstacle, imagine it continuing in the same trajectory to determine if it would have travelled more than 10 metres
+    
+    **Q5 - Type of Header**
+    - **Question**: Is the header flicked on or glanced?
+    - **Purpose**: Determine whether the motion/direction of the ball remains unaffected after the header
+    - **Note**: This overlaps with Q3 - we want to know if the ball's direction changes, which can be determined by the type of header performed
     """)
