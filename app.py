@@ -45,13 +45,16 @@ q3 = yes_no("3️⃣ Is there a change in direction AFTER the header?", "q3")
 q4 = yes_no("4️⃣ Does the ball travel more than 10 meters AFTER the header?", "q4")
 q5 = yes_no("5️⃣ Is the header flicked or glanced?", "q5")
 
-input_data = pd.DataFrame([{
-    "Q1_BallOver35m_Before": int(q1),
-    "Q2_FastBall_Before": int(q2),
-    "Q3_DirectionChange_After": int(q3),
-    "Q4_BallOver10m_After": int(q4),
-    "Q5_Header_FlickedOrGlanced": int(q5)
-}])
+# Reorder columns in the same order as during training
+expected_columns = [
+    "Q1_BallOver35m_Before",
+    "Q2_FastBall_Before",
+    "Q3_DirectionChange_After",
+    "Q4_BallOver10m_After",
+    "Q5_Header_FlickedOrGlanced"
+]
+input_data = input_data[expected_columns]
+
 
 # === Prediction ===
 proba = model.predict_proba(input_data)[0][1]
