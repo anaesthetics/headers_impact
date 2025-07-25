@@ -47,19 +47,19 @@ q5 = yes_no("5️⃣ Is the header flicked or glanced?", "q5")
 
 # === Prepare input ===
 expected_columns = [
-    "Q1_BallOver35m_Before",
-    "Q2_FastBall_Before",
-    "Q3_DirectionChange_After",
-    "Q4_BallOver10m_After",
-    "Q5_Header_FlickedOrGlanced"
+    "1_Dist_Bef_Head",
+    "2_Fli_Bef_Head",
+    "3_Fli_Aft_Head",
+    "4_Dist_Aft_Head",
+    "5_Head_Type"
 ]
 
 input_data = pd.DataFrame([{
-    "Q1_BallOver35m_Before": int(q1),
-    "Q2_FastBall_Before": int(q2),
-    "Q3_DirectionChange_After": int(q3),
-    "Q4_BallOver10m_After": int(q4),
-    "Q5_Header_FlickedOrGlanced": int(q5)
+    "1_Dist_Bef_Head": int(q1),
+    "2_Fli_Bef_Head": int(q2),
+    "3_Fli_Aft_Head": int(q3),
+    "4_Dist_Aft_Head": int(q4),
+    "5_Head_Type": int(q5)
 }])[expected_columns]  # reorder right here
 
 
